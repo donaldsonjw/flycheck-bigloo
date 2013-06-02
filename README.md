@@ -33,3 +33,12 @@ flycheck-bigloo provides the following customizable options:
 * `flycheck-bigloo-make-command`
 
    The flycheck command list used by the flycheck syntax checker bigloo-make.
+
+
+## Example Makefile Target
+
+`check-syntax: .afile
+
+	$(BIGLOO) -init ${CHK_SOURCES}`
+
+The dependency on the .afile target guarantess that an appropriate .afile is created and all of the bigloo modules can be found.
