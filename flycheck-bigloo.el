@@ -53,37 +53,14 @@
     flycheck-bigloo
   "*The list of bigloo error regexps"
   :type '(repeat (string)))
-
-(flycheck-def-option-var flycheck-bigloo-standalone-command
-    '("bigloo" "-ast" source-inplace)
-    flycheck-bigloo
-  "*The flycheck command list used by the flycheck syntax checker bigloo-standalone"
-  :type 'sexp)
-
-(flycheck-def-option-var flycheck-bigloo-make-command
-    '( "make"
-	      (option "-f" flycheck-bigloo-buildfile)
-	      (option "-C" flycheck-bigloo-buildfile-dir)
-	      (eval flycheck-bigloo-buildfile-target) 
-	      (eval (let ((fname (flycheck-save-buffer-to-temp #'flycheck-temp-file-inplace "flycheck")))
-		      
-		      (add-to-list 
-		       'flycheck-temp-files
-		       (concat (file-name-directory (expand-file-name fname))
-			       (trim-common-prefix (expand-file-name flycheck-bigloo-buildfile-dir) 
-						   (expand-file-name fname))))
-		      (format "CHK_SOURCES=%s" (flycheck-save-buffer-to-temp #'flycheck-temp-file-inplace "flycheck"))))
-	      source-inplace
-	      )
-    flycheck-bigloo
-  "*The flycheck command list used by the flycheck syntax checker bigloo-make"
-  :type 'sexp)
   
 
 ;;;; utility procedures
 
 (defun parent-dir (path)
-  (file-name-directory (directory-file-name path)))
+   (if (string= path "/")
+       nil
+     (file-name-directory (directory-file-name path))))
 
 
 (defun flycheck-bigloo-find-buildfile-dir (start-dir)
@@ -181,21 +158,33 @@ nil"
     res))
   
 
-(flycheck-declare-checker bigloo-make
+(flycheck-define-checker bigloo-make
   "a syntax checker for bigloo scheme"
-  :command flycheck-bigloo-make-command
-  :error-parser 'flycheck-bigloo-parse-errors
-  :modes 'bee-mode
-  :predicate '(check-syntax-target-exists-p))
+  :command ("make"
+	    (option "-f" flycheck-bigloo-buildfile)
+	    (option "-C" flycheck-bigloo-buildfile-dir)
+	    (eval flycheck-bigloo-buildfile-target) 
+	    (eval (let ((fname (flycheck-save-buffer-to-temp #'flycheck-temp-file-inplace "flycheck")))
+		    
+		    (add-to-list 
+		     'flycheck-temp-files
+		     (concat (file-name-directory (expand-file-name fname))
+			     (trim-common-prefix (expand-file-name flycheck-bigloo-buildfile-dir) 
+						 (expand-file-name fname))))
+		    (format "CHK_SOURCES=%s" (flycheck-save-buffer-to-temp #'flycheck-temp-file-inplace "flycheck"))))
+	    source-inplace)
+  :error-parser flycheck-bigloo-parse-errors
+  :modes bee-mode
+  :predicate check-syntax-target-exists-p)
 
 
 
-(flycheck-declare-checker bigloo-standalone
+(flycheck-define-checker bigloo-standalone
   "a syntax checker for bigloo scheme"
-  :command flycheck-bigloo-standalone-command
-  :error-parser 'flycheck-bigloo-parse-errors
-  :modes 'bee-mode
-  :predicate '(not (check-syntax-target-exists-p)))
+  :command ("bigloo" "-syntax-check"  source-inplace)
+  :error-parser flycheck-bigloo-parse-errors
+  :modes bee-mode
+  :predicate (lambda () (not (check-syntax-target-exists-p))))
 
 
 (add-to-list 'flycheck-checkers 'bigloo-standalone)
