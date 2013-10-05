@@ -164,14 +164,14 @@ nil"
 	    (option "-f" flycheck-bigloo-buildfile)
 	    (option "-C" flycheck-bigloo-buildfile-dir)
 	    (eval flycheck-bigloo-buildfile-target) 
-	    (eval (let ((fname (flycheck-save-buffer-to-temp #'flycheck-temp-file-inplace "flycheck")))
+	    (eval (let ((fname (flycheck-save-buffer-to-temp #'flycheck-temp-file-system "flycheck")))
 		    
-		    (add-to-list 
-		     'flycheck-temp-files
-		     (concat (file-name-directory (expand-file-name fname))
-			     (trim-common-prefix (expand-file-name flycheck-bigloo-buildfile-dir) 
-						 (expand-file-name fname))))
-		    (format "CHK_SOURCES=%s" (flycheck-save-buffer-to-temp #'flycheck-temp-file-inplace "flycheck"))))
+		    ;; (add-to-list 
+		    ;;  'flycheck-temp-files
+		    ;;  (concat (file-name-directory (expand-file-name fname))
+		    ;; 	     (trim-common-prefix (expand-file-name flycheck-bigloo-buildfile-dir) 
+		    ;; 				 (expand-file-name fname))))
+		    (format "CHK_SOURCES=%s" (flycheck-save-buffer-to-temp #'flycheck-temp-file-system "flycheck"))))
 	    source-inplace)
   :error-parser flycheck-bigloo-parse-errors
   :modes bee-mode
