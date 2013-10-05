@@ -26,18 +26,10 @@ flycheck-bigloo provides the following customizable options:
 
    The list of bigloo error regexps to use
 
-* `flycheck-bigloo-standalone-command`
-
-   The flycheck command list used by the flycheck syntax checker bigloo-standalone.
-
-* `flycheck-bigloo-make-command`
-
-   The flycheck command list used by the flycheck syntax checker bigloo-make.
-
 
 ## Example Makefile Target
 
 `check-syntax: .afile
-	$(BIGLOO) -init ${CHK_SOURCES}`
+	$(BIGLOO) -syntax-check ${CHK_SOURCES}`
 
-The dependency on the .afile target guarantess that an appropriate .afile is created and all of the bigloo modules can be found.
+The dependency on the .afile target guarantees that an appropriate .afile is created and all of the bigloo modules can be found.
