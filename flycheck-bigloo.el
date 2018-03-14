@@ -1,4 +1,4 @@
-;;;; Copyright(c) 2013 Joseph Donaldson(donaldsonjw@yahoo.com)
+;;;; Copyright(c) 2013, 2018 Joseph Donaldson(donaldsonjw@yahoo.com)
 ;;;; This file is part of flycheck-bigloo.
 ;;;;
 ;;;; flycheck-bigloo is free software: you can redistribute it and/or modify
@@ -14,15 +14,13 @@
 ;;;; You should have received a copy of the GNU General Public
 ;;;; License along with flycheck-bigloo. If not, see
 ;;;; <http://www.gnu.org/licenses/>.
-;;;; Copyright(c) 2013 Joseph Donaldson(donaldsonjw@yahoo.com) 
 
-(provide 'flycheck-bigloo)
 (require 'flycheck)
 
 
 
 (flycheck-def-option-var flycheck-bigloo-buildfile-list
-    '("GNUmakefile" "makefile" "Makefile")
+    '("GNUmakefile" "makefile" "Makefile" "Makefile.inc")
     flycheck-bigloo
     "*The list of buildfile(makefile) names to search for"
   :type '(repeat (string)))
@@ -138,14 +136,13 @@ nil"
 	(dolist (regexp flycheck-bigloo-error-regexps)
 	  (let ((match (s-match regexp msg)))
 	    (when match
-	      (let ((file-name (buffer-file-name))
-		    (line (flycheck-bigloo-match-int match 2))
+	      (let ((line (flycheck-bigloo-match-int match 2))
 		    (message (flycheck-bigloo-match-string-non-empty match 4)))
-		(setq errs (cons (flycheck-error-new 
-				  :filename file-name
-				  :line  line
-				  :message message
-				  :level 'error)
+		(setq errs (cons (flycheck-error-new-at 
+                                  line
+                                  nil
+                                  'error
+                                  message)
 				 errs))
 		(throw 'exit nil)))))))))
 
@@ -153,26 +150,19 @@ nil"
 
 (defun flycheck-bigloo-parse-errors (output checker buffer)
   "Parse bigloo errors from output"
+  (message "called flycheck-bigloo-parse-error")
   (let ((res (flycheck-bigloo-get-errors
 	      (flycheck-bigloo-get-error-msgs output))))
+    (message "%s" res)
     res))
   
 
 (flycheck-define-checker bigloo-make
   "a syntax checker for bigloo scheme"
   :command ("make"
-	    (option "-f" flycheck-bigloo-buildfile)
 	    (option "-C" flycheck-bigloo-buildfile-dir)
 	    (eval flycheck-bigloo-buildfile-target) 
-	    (eval (let ((fname (flycheck-save-buffer-to-temp #'flycheck-temp-file-system "flycheck")))
-		    
-		    ;; (add-to-list 
-		    ;;  'flycheck-temp-files
-		    ;;  (concat (file-name-directory (expand-file-name fname))
-		    ;; 	     (trim-common-prefix (expand-file-name flycheck-bigloo-buildfile-dir) 
-		    ;; 				 (expand-file-name fname))))
-		    (format "CHK_SOURCES=%s" (flycheck-save-buffer-to-temp #'flycheck-temp-file-system "flycheck"))))
-	    source-inplace)
+            (eval (format "CHK_SOURCES=%s" (flycheck-save-buffer-to-temp #'flycheck-temp-file-inplace))))
   :error-parser flycheck-bigloo-parse-errors
   :modes bee-mode
   :predicate check-syntax-target-exists-p)
@@ -191,13 +181,10 @@ nil"
 (add-to-list 'flycheck-checkers 'bigloo-make)
 
 
-
-
-
-
-
 (add-hook 'bee-mode-hook (lambda ()
 			   (flycheck-mode 1)))
 
+(provide 'flycheck-bigloo)
+;;; flycheck-bigloo.el ends here 
 
 
